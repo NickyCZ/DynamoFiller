@@ -4,5 +4,5 @@ namespace Domain.Services;
 
 public interface IMultiplePricesReader
 {
-    Task<IEnumerable<MultiplePrices>> GetDataAsync(string filePath, CancellationToken stoppingToken = default);
+    Task<IEnumerable<MultiplePrices>> GetMultiplePricesAsync(string filePath, CancellationToken stoppingToken = default);
 }

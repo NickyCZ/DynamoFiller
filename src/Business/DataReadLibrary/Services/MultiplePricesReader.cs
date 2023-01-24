@@ -15,12 +15,12 @@ public class MultiplePricesReader : IMultiplePricesReader
         this.recordsReader = recordsReader ?? throw new ArgumentNullException(nameof(recordsReader));
     }
 
-    public async Task<IEnumerable<MultiplePrices>> GetDataAsync(string filePath, CancellationToken stoppingToken = default)
+    public async Task<IEnumerable<MultiplePrices>> GetMultiplePricesAsync(string filePath, CancellationToken stoppingToken = default)
     {
         var fileNameWithoutExt = Path.GetFileNameWithoutExtension(filePath);
         logger.LogInformation("Process multiple prices data of " + fileNameWithoutExt + " instrument");
-        var rawSeries = await recordsReader.CreateRecordsAsync(filePath);
-        
+        var rawSeries = await recordsReader.CreateRecordsAsync(filePath, stoppingToken);
+
         var multiplePricesSeries = rawSeries.Select(x => new MultiplePrices
         {
             Instrument = fileNameWithoutExt,

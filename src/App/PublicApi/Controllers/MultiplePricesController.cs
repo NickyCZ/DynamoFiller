@@ -15,12 +15,17 @@ public class MultiplePricesController : ControllerBase
     private readonly ILogger<MultiplePricesController> logger;
     private readonly IMultiplePricesReader multiplePricesReader;
     private readonly IOptions<MultiplePricesSettings> options;
+    private readonly IDynamoRepository dynamoRepository;
     private string FolderPath => options.Value.FolderPath;
-    public MultiplePricesController(ILogger<MultiplePricesController> logger, IMultiplePricesReader multiplePricesReader, IOptions<MultiplePricesSettings> options)
+    public MultiplePricesController(ILogger<MultiplePricesController> logger, 
+                                    IMultiplePricesReader multiplePricesReader, 
+                                    IOptions<MultiplePricesSettings> options,
+                                    IDynamoRepository dynamoRepository)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.multiplePricesReader = multiplePricesReader ?? throw new ArgumentNullException(nameof(multiplePricesReader));
         this.options = options ?? throw new ArgumentNullException(nameof(options));
+        this.dynamoRepository = dynamoRepository ?? throw new ArgumentNullException(nameof(options));
     }
 
     [HttpPost("single")]
@@ -38,9 +43,9 @@ public class MultiplePricesController : ControllerBase
             {
                 return BadRequest(ModelState);
             }
-            var data = await multiplePricesReader.GetDataAsync(filePath);
-
-            return Ok(ModelState);
+            var multiplePrices = await multiplePricesReader.GetMultiplePricesAsync(filePath);
+            var result = await dynamoRepository.InsertMultiplePrices(multiplePrices);
+            return Ok(result);
         }
         return BadRequest(ModelState);
     }
@@ -54,11 +59,11 @@ public class MultiplePricesController : ControllerBase
         {
             logger.LogInformation("Process all instruments");
             var filesPaths = Directory.GetFiles(FolderPath, "*.csv");
-            var multiplePrices = new List<MultiplePrices>();
+            
             foreach (var file in filesPaths)
             {
-                var data = await multiplePricesReader.GetDataAsync(file);
-                multiplePrices.AddRange(data);
+                var multiplePrices = await multiplePricesReader.GetMultiplePricesAsync(file);
+                var result = await dynamoRepository.InsertMultiplePrices(multiplePrices);
             }
             
             return Ok(ModelState);
