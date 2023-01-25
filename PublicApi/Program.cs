@@ -1,6 +1,6 @@
-using DataReadLibrary.RecordReaders;
-using DataReadLibrary.Services;
-using Domain.Services;
+using PublicApi.RecordReaders;
+using PublicApi.Repository;
+using PublicApi.Services;
 using PublicApi.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IMultiplePricesReader, MultiplePricesReader>();
 builder.Services.AddScoped(typeof(IRecordsReader<>), typeof(RecordsReader<>));
+builder.Services.AddScoped<IDynamoRepository, DynamoRepository>();
 
 builder.Services.Configure<MultiplePricesSettings>(builder.Configuration.GetSection("MultiplePricesSettings"));
 

@@ -1,11 +1,11 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
-using Domain.Services;
+using PublicApi.Services;
 using System.Globalization;
 
-namespace DataReadLibrary.RecordReaders;
+namespace PublicApi.RecordReaders;
 
-public class RecordsReader<T>: IRecordsReader<T>
+public class RecordsReader<T> : IRecordsReader<T>
 {
     public async Task<IEnumerable<T>> CreateRecordsAsync(string rawInstrumentPath, CancellationToken cancellationToken = default)
     {

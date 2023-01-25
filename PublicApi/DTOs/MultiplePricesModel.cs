@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Domain.DTOs;
+namespace PublicApi.DTOs;
 
 public class MultiplePricesModel
 {
     [Required]
-    public string Instrument { get; set; } = string.Empty;
+    public string? Instrument { get; set; } = default;
 }

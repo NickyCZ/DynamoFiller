@@ -1,8 +1,7 @@
-using Domain.DTOs;
-using Domain.Records;
-using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using PublicApi.DTOs;
+using PublicApi.Services;
 using PublicApi.Settings;
 using System.Net;
 

@@ -1,6 +1,6 @@
-﻿using Domain.Records;
+﻿using PublicApi.Records;
 
-namespace Domain.Services;
+namespace PublicApi.Services;
 
 public interface IDynamoRepository
 {

@@ -1,9 +1,8 @@
-﻿using Domain.Models;
-using Domain.Records;
-using Domain.Services;
-using Microsoft.Extensions.Logging;
+﻿using PublicApi.Models;
+using PublicApi.Records;
+using System.Globalization;
 
-namespace DataReadLibrary.Services;
+namespace PublicApi.Services;
 
 public class MultiplePricesReader : IMultiplePricesReader
 {
@@ -20,16 +19,16 @@ public class MultiplePricesReader : IMultiplePricesReader
         var fileNameWithoutExt = Path.GetFileNameWithoutExtension(filePath);
         logger.LogInformation("Process multiple prices data of " + fileNameWithoutExt + " instrument");
         var rawSeries = await recordsReader.CreateRecordsAsync(filePath, stoppingToken);
-
+        var culture = new CultureInfo("en-US");
         var multiplePricesSeries = rawSeries.Select(x => new MultiplePrices
         {
             Instrument = fileNameWithoutExt,
             UnixDateTime = (int)x.DATETIME.Subtract(DateTime.UnixEpoch).TotalSeconds,
-            Carry = x.CARRY,
+            Carry = Convert.ToDecimal(x.CARRY, culture),
             CarryContract = x.CARRY_CONTRACT,
-            Price = x.PRICE,
+            Price = Convert.ToDecimal(x.PRICE, culture),
             PriceContract = x.PRICE_CONTRACT,
-            Forward = x.FORWARD,
+            Forward = Convert.ToDecimal(x.FORWARD, culture),
             ForwardContract = x.FORWARD_CONTRACT
         });
         return multiplePricesSeries;

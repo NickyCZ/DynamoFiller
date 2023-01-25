@@ -1,4 +1,4 @@
-﻿namespace Domain.Services;
+﻿namespace PublicApi.Services;
 
 public interface IRecordsReader<T>
 {
