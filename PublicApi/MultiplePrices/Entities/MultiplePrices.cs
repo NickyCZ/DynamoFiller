@@ -1,4 +1,4 @@
-﻿namespace PublicApi.Records;
+﻿namespace PublicApi.MultiplePrices.Entities;
 
 public record MultiplePrices
 {

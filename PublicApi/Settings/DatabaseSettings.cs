@@ -2,5 +2,7 @@
 
 public class DatabaseSettings
 {
-    public string TableName { get; set; } = default!;
+    public string Region { get; set; } = string.Empty;
+    public string TableName { get; set; } = string.Empty;
 }
+

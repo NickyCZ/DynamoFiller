@@ -1,6 +1,6 @@
-﻿namespace PublicApi.Models;
+﻿namespace PublicApi.MultiplePrices.Records;
 
-public record MultiplePricesModel
+public record MultiplePricesRecord
 {
     public DateTime DATETIME { get; set; }
     public string? CARRY { get; set; } = default;

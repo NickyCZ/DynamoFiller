@@ -1,4 +1,4 @@
-﻿namespace PublicApi.Services;
+﻿namespace PublicApi.RecordReaders;
 
 public interface IRecordsReader<T>
 {
