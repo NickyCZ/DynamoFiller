@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using PublicApi.AdjustedPrices.Services;
 using PublicApi.FxPrices.Services;
 using PublicApi.MultiplePrices.Services;
@@ -41,5 +43,6 @@ static void ConfigureServices(IServiceCollection services)
     services.AddScoped<IRollCalendarServices, RollCalendarServices>();
 
     services.AddScoped(typeof(IRecordsReader<>), typeof(RecordsReader<>));
-    services.AddSingleton<IDynamoRepository, DynamoRepository>();
-}
+
+    services.AddSingleton(typeof(IDynamoDBRepository<>), typeof(DynamoDBRepository<>));
+} 

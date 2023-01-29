@@ -2,5 +2,5 @@
 
 public interface IRollCalendarServices
 {
-    Task AddRollCalendar(List<string> instrument);
+    void AddRollCalendar(List<string> instrument);
 }

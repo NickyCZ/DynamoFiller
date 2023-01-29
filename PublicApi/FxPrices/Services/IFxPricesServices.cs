@@ -2,5 +2,5 @@
 
 public interface IFxPricesServices
 {
-    Task AddFxPrices(List<string> instrument);
+    void AddFxPrices(List<string> instrument);
 }

@@ -4,8 +4,6 @@ using PublicApi.Commands;
 using PublicApi.FxPrices.Services;
 using PublicApi.MultiplePrices.Services;
 using PublicApi.RollCalendars.Services;
-using System.Diagnostics.Metrics;
-
 namespace PublicApi.Handlers;
 
 public class AddInstrumentHandler : IRequestHandler<AddInstrumentCommand, string>
@@ -29,10 +27,10 @@ public class AddInstrumentHandler : IRequestHandler<AddInstrumentCommand, string
     {
         logger.LogInformation("Adding Instruments");
         var instruments = command.Model.Instruments;
-        await fxPricesServices.AddFxPrices(instruments);
-        await adjustedPricesService.AddAdjustedPrices(instruments);
+        fxPricesServices.AddFxPrices(instruments);
+        adjustedPricesService.AddAdjustedPrices(instruments);
         await multiplePricesService.AddMultiplePrices(instruments);
-        await rollCalendarServices.AddRollCalendar(instruments);
+        rollCalendarServices.AddRollCalendar(instruments);
         return "Instruments added successfully";
     }
 }

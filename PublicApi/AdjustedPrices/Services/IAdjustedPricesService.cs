@@ -2,5 +2,5 @@
 
 public interface IAdjustedPricesService
 {
-    Task AddAdjustedPrices(List<string> instrument);
+    void AddAdjustedPrices(List<string> instrument);
 }

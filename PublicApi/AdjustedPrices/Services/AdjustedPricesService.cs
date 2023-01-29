@@ -2,8 +2,8 @@
 
 public class AdjustedPricesService : IAdjustedPricesService
 {
-    public Task AddAdjustedPrices(List<string> instrument)
+    public void AddAdjustedPrices(List<string> instrument)
     {
-        throw new NotImplementedException();
+        
     }
 }
