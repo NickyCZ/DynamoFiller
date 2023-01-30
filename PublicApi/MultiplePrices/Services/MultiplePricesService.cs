@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using PublicApi.Handlers;
-using PublicApi.MultiplePrices.Entities;
-using PublicApi.MultiplePrices.Models;
+using PublicApi.MultiplePrices.Items;
 using PublicApi.MultiplePrices.Records;
+using PublicApi.MultiplePrices.TableServices;
 using PublicApi.RecordReaders;
 using PublicApi.Repository;
 using PublicApi.Settings;
@@ -12,25 +11,30 @@ namespace PublicApi.MultiplePrices.Services;
 
 public class MultiplePricesService : IMultiplePricesService
 {
-    private readonly ILogger<AddInstrumentHandler> logger;
+    private readonly ILogger<MultiplePricesService> logger;
     private readonly IOptions<LocalFoldersSettings> localFoldersSettings;
     private readonly IRecordsReader<MultiplePricesRecord> recordsReader;
     private readonly IDynamoDBRepository<MultiplePricesItem> dynamoDBRepository;
-    public MultiplePricesService(ILogger<AddInstrumentHandler> logger, IOptions<LocalFoldersSettings> localFoldersSettings,
-                                 IRecordsReader<MultiplePricesRecord> recordsReader, IDynamoDBRepository<MultiplePricesItem> dynamoDBRepository)
+    private readonly IMultiplePricesTableService multiplePricesTableService;
+    public MultiplePricesService(ILogger<MultiplePricesService> logger, 
+                                 IOptions<LocalFoldersSettings> localFoldersSettings,
+                                 IRecordsReader<MultiplePricesRecord> recordsReader, 
+                                 IDynamoDBRepository<MultiplePricesItem> dynamoDBRepository,
+                                 IMultiplePricesTableService multiplePricesTableService)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.localFoldersSettings = localFoldersSettings ?? throw new ArgumentNullException(nameof(localFoldersSettings));
         this.recordsReader = recordsReader ?? throw new ArgumentNullException(nameof(recordsReader));
         this.dynamoDBRepository = dynamoDBRepository ?? throw new ArgumentNullException(nameof(dynamoDBRepository));
+        this.multiplePricesTableService = multiplePricesTableService ?? throw new ArgumentNullException(nameof(multiplePricesTableService));
     }
     public async Task AddMultiplePrices(List<string> instruments)
     {
+        await multiplePricesTableService.CreateTableAsync();
         var localFolder = localFoldersSettings.Value.MultiplePricesFolder;
         var instrumentFiles = this.GetFilesByInstrument(instruments, localFolder);
-        var multiplePrices = await GetMultiplePrices(instrumentFiles);
-        var item = multiplePrices.First();
-        await dynamoDBRepository.WriteAsync(item);
+        var multiplePrices = await GetMultiplePrices(instrumentFiles);    
+        await dynamoDBRepository.WriteManyAsync(multiplePrices);
         Console.WriteLine();
     }
 
@@ -74,5 +78,4 @@ public class MultiplePricesService : IMultiplePricesService
         await Task.WhenAll(tasks);
         return multiplePricesitems;
     }
-
 }

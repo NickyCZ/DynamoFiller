@@ -1,6 +1,6 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 
-namespace PublicApi.MultiplePrices.Entities;
+namespace PublicApi.MultiplePrices.Items;
 
 [DynamoDBTable("MultiplePrices")]
 public record MultiplePricesItem

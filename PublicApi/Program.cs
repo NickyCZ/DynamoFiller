@@ -1,8 +1,7 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using PublicApi.AdjustedPrices.Services;
 using PublicApi.FxPrices.Services;
 using PublicApi.MultiplePrices.Services;
+using PublicApi.MultiplePrices.TableServices;
 using PublicApi.RecordReaders;
 using PublicApi.Repository;
 using PublicApi.RollCalendars.Services;
@@ -41,6 +40,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddScoped<IAdjustedPricesService, AdjustedPricesService>();
     services.AddScoped<IMultiplePricesService, MultiplePricesService>();
     services.AddScoped<IRollCalendarServices, RollCalendarServices>();
+    services.AddScoped<IMultiplePricesTableService, MultiplePricesTableService>();
 
     services.AddScoped(typeof(IRecordsReader<>), typeof(RecordsReader<>));
 

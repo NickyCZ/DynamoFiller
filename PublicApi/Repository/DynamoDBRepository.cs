@@ -9,6 +9,7 @@ namespace PublicApi.Repository;
 public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
 {
     private readonly DynamoDBContext context;
+    private readonly AmazonDynamoDBClient client;
     public DynamoDBRepository(IOptions<DatabaseSettings> databaseSettings)
     {
         var credentials = new BasicAWSCredentials(databaseSettings.Value.AccessKeyId, databaseSettings.Value.SecretAccessKey);
@@ -17,10 +18,13 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
             ServiceURL = databaseSettings.Value.ServiceURL,
             AuthenticationRegion = databaseSettings.Value.Region
         };
-        var client = new AmazonDynamoDBClient(credentials, config);
-        this.context = new DynamoDBContext(client);
+        this.client = new AmazonDynamoDBClient(credentials, config);        
+        this.context = new DynamoDBContext(this.client);
     }
-
+    public AmazonDynamoDBClient GetDynamo()
+    {
+        return this.client;
+    }
     public async Task<T> GetAsync(string id)
     {
         try
@@ -32,7 +36,6 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
             throw new Exception($"Amazon error in Get operation! Error: {ex}");
         }
     }
-
     public async Task WriteAsync(T item)
     {
         try
@@ -42,6 +45,19 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
         catch (Exception ex)
         {
             throw new Exception($"Amazon error in Write operation! Error: {ex}");
+        }
+    }
+    public async Task WriteManyAsync(IEnumerable<T> items)
+    {
+        try
+        {
+            var batchWrite = context.CreateBatchWrite<T>();
+            batchWrite.AddPutItems(items);
+            await batchWrite.ExecuteAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Amazon error in AddMany operation! Error: {ex}");
         }
     }
 
