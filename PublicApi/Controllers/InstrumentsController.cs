@@ -33,21 +33,4 @@ public class InstrumentsController : ControllerBase
         }
         return BadRequest(ModelState);
     }
-
-    //[HttpGet]
-    //[ProducesResponseType((int)HttpStatusCode.Forbidden)]
-    //[ProducesResponseType((int)HttpStatusCode.OK)]
-    //[ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    //public ActionResult Get()
-    //{
-    //    if (ModelState.IsValid)
-    //    {
-    //        logger.LogInformation("Start of the process");
-    //        var filesPaths = Directory.GetFiles(FolderPath, searchPattern: "*.csv");
-    //        var filesNames = filesPaths.Select(x => Path.GetFileNameWithoutExtension(x));
-    //        return Ok(filesNames);
-    //    }
-    //    return BadRequest(ModelState);
-    //}
-
 }

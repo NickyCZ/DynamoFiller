@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using PublicApi.AdjustedPrices.Services;
 using PublicApi.FxPrices.Services;
+using PublicApi.MultiplePrices.Items;
 using PublicApi.MultiplePrices.Services;
-using PublicApi.MultiplePrices.TableServices;
 using PublicApi.RecordReaders;
 using PublicApi.Repository;
+using PublicApi.Repository.TableSeed;
 using PublicApi.RollCalendars.Services;
 using PublicApi.Settings;
 
@@ -21,6 +23,24 @@ ConfigureServices(builder.Services);
 builder.Services.Configure<LocalFoldersSettings>(builder.Configuration.GetSection("LocalFoldersSettings"));
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
 var app = builder.Build();
+
+app.Logger.LogInformation("PublicApi App created...");
+app.Logger.LogInformation("Seeding Database...");
+
+using (var scope = app.Services.CreateScope())
+{
+    var scopedProvider = scope.ServiceProvider;
+    try
+    {
+        var catalogContext = scopedProvider.GetRequiredService<IDynamoDBRepository<MultiplePricesItem>>();
+        await TableSeedService.SeedAsync(catalogContext, app.Logger);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "An error occurred seeding the DB.");
+    }
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -40,7 +60,6 @@ static void ConfigureServices(IServiceCollection services)
     services.AddScoped<IAdjustedPricesService, AdjustedPricesService>();
     services.AddScoped<IMultiplePricesService, MultiplePricesService>();
     services.AddScoped<IRollCalendarServices, RollCalendarServices>();
-    services.AddScoped<IMultiplePricesTableService, MultiplePricesTableService>();
 
     services.AddScoped(typeof(IRecordsReader<>), typeof(RecordsReader<>));
 

@@ -10,20 +10,26 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
 {
     private readonly DynamoDBContext context;
     private readonly AmazonDynamoDBClient client;
-    public DynamoDBRepository(IOptions<DatabaseSettings> databaseSettings)
+    private readonly ILogger<DynamoDBRepository<T>> logger;
+    public DynamoDBRepository(IOptions<DatabaseSettings> databaseSettings, ILogger<DynamoDBRepository<T>> logger)
     {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         var credentials = new BasicAWSCredentials(databaseSettings.Value.AccessKeyId, databaseSettings.Value.SecretAccessKey);
         var config = new AmazonDynamoDBConfig
         {
             ServiceURL = databaseSettings.Value.ServiceURL,
             AuthenticationRegion = databaseSettings.Value.Region
         };
-        this.client = new AmazonDynamoDBClient(credentials, config);        
+        this.client = new AmazonDynamoDBClient(credentials, config);
         this.context = new DynamoDBContext(this.client);
     }
     public AmazonDynamoDBClient GetDynamo()
     {
         return this.client;
+    }
+    public IDynamoDBContext GetDynamoContext()
+    {
+        return this.context;
     }
     public async Task<T> GetAsync(string id)
     {
@@ -33,7 +39,7 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
         }
         catch (Exception ex)
         {
-            throw new Exception($"Amazon error in Get operation! Error: {ex}");
+            throw new Exception($"Amazon error in GetAvailableInstrument operation! Error: {ex}");
         }
     }
     public async Task WriteAsync(T item)
@@ -49,17 +55,13 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
     }
     public async Task WriteManyAsync(IEnumerable<T> items)
     {
-        try
-        {
-            var batchWrite = context.CreateBatchWrite<T>();
-            batchWrite.AddPutItems(items);
-            await batchWrite.ExecuteAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Amazon error in AddMany operation! Error: {ex}");
-        }
+        logger.LogInformation("Writing " + items.Count() + " items");
+        var batch = context.CreateBatchWrite<T>();
+        batch.AddPutItems(items);
+        await batch.ExecuteAsync();
+        logger.LogInformation("Done");
     }
+
 
     public async Task DeleteAsync(T item)
     {
