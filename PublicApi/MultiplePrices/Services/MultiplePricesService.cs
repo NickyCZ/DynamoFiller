@@ -29,26 +29,6 @@ public class MultiplePricesService : IMultiplePricesService
     {
         var localFolder = localFoldersSettings.Value.MultiplePricesFolder;
         var instrumentFiles = this.GetFilesByInstrument(instruments, localFolder);
-        var multiplePrices = await GetMultiplePrices(instrumentFiles);
-        await dynamoDBRepository.WriteManyAsync(multiplePrices.Take(10));
-    }
-
-    private List<string> GetFilesByInstrument(List<string> instruments, string localFolder)
-    {
-        if (instruments.Any())
-        {
-            return instruments.Select(x => Path.Combine(localFolder, $"{x}.csv"))
-                             .Where(File.Exists)
-                             .ToList();
-        }
-        else
-        {
-            return Directory.GetFiles(localFolder, "*.csv").ToList();
-        }
-    }
-    private async Task<IEnumerable<MultiplePricesItem>> GetMultiplePrices(List<string> instrumentFiles)
-    {
-        var multiplePricesitems = new ConcurrentBag<MultiplePricesItem>();
         var tasks = instrumentFiles.Select(async instrumentFile =>
         {
             var instrumentName = Path.GetFileNameWithoutExtension(instrumentFile);
@@ -65,12 +45,23 @@ public class MultiplePricesService : IMultiplePricesService
                 Forward = decimal.TryParse(x.FORWARD, out decimal forward) ? forward : null,
                 ForwardContract = x.FORWARD_CONTRACT
             });
-            foreach (var multiplePrice in multiplePricesSeries)
-            {
-                multiplePricesitems.Add(multiplePrice);
-            }
+            await dynamoDBRepository.WriteManyAsync(multiplePricesSeries);
         });
         await Task.WhenAll(tasks);
-        return multiplePricesitems;
+        Console.WriteLine();
+    }
+
+    private List<string> GetFilesByInstrument(List<string> instruments, string localFolder)
+    {
+        if (instruments.Any())
+        {
+            return instruments.Select(x => Path.Combine(localFolder, $"{x}.csv"))
+                             .Where(File.Exists)
+                             .ToList();
+        }
+        else
+        {
+            return Directory.GetFiles(localFolder, "*.csv").ToList();
+        }
     }
 }

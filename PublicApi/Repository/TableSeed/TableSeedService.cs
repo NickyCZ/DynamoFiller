@@ -11,12 +11,12 @@ public class TableSeedService
         var retryForAvailability = retry;
         try
         {
-            var context = dynamoRepository.GetDynamo();
-            if (await TableExistsAsync(context, "MultiplePrices"))
+            var client = dynamoRepository.GetDynamo();
+            if (await TableExistsAsync(client, "MultiplePrices"))
             {
                 return;
             }
-            await CreateMultiplePricesTableAsync(dynamoRepository, logger);
+            await CreateMultiplePricesTableAsync(client, logger);
         }
         catch (Exception ex)
         {
@@ -30,16 +30,23 @@ public class TableSeedService
         }
     }
 
-    private static async Task<bool> TableExistsAsync(IAmazonDynamoDB context, string tableName)
+    private static async Task<bool> TableExistsAsync(IAmazonDynamoDB client, string tableName)
     {
-        var response = await context.ListTablesAsync();
-        return response.TableNames.Contains(tableName);
+        try
+        {
+            var response = await client.ListTablesAsync();
+            return response.TableNames.Contains(tableName);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error occured while checking if table exists: " + ex.Message);
+            return false;
+        }
     }
 
-    private static async Task CreateMultiplePricesTableAsync(IDynamoDBRepository<MultiplePricesItem> dynamoDBRepository, ILogger logger)
+    private static async Task CreateMultiplePricesTableAsync(AmazonDynamoDBClient client, ILogger logger)
     {
         logger.LogInformation("Creation MultiplePricesTable");
-        var context = dynamoDBRepository.GetDynamo();
         var request = new CreateTableRequest
         {
             TableName = "MultiplePrices",
@@ -71,11 +78,11 @@ public class TableSeedService
     },
             ProvisionedThroughput = new ProvisionedThroughput
             {
-                ReadCapacityUnits = 10000,
-                WriteCapacityUnits = 10000
+                ReadCapacityUnits = 1000,
+                WriteCapacityUnits = 1000
             }
         };
-        await context.CreateTableAsync(request);
+        await client.CreateTableAsync(request);
     }
 
 }

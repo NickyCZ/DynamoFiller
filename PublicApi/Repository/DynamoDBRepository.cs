@@ -56,9 +56,18 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
     public async Task WriteManyAsync(IEnumerable<T> items)
     {
         logger.LogInformation("Writing " + items.Count() + " items");
-        var batch = context.CreateBatchWrite<T>();
-        batch.AddPutItems(items);
-        await batch.ExecuteAsync();
+        int batchSize = 25;
+        var itemsList = items.ToList();
+        int totalBatches = (int)Math.Ceiling((double)itemsList.Count / batchSize);
+
+        for (int i = 0; i < totalBatches; i++)
+        {
+            var batch = context.CreateBatchWrite<T>();
+            var currentBatch = itemsList.Skip(i * batchSize).Take(batchSize);
+            batch.AddPutItems(currentBatch);
+            await batch.ExecuteAsync();
+        }
+
         logger.LogInformation("Done");
     }
 
