@@ -56,7 +56,7 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
     public void WriteManyAsync(IEnumerable<T> items)
     {
         logger.LogInformation("Writing " + items.Count() + " items");
-        int batchSize = 25;
+        int batchSize = 50;
         var itemsList = items.ToList();
         int totalBatches = (int)Math.Ceiling((double)itemsList.Count / batchSize);
 

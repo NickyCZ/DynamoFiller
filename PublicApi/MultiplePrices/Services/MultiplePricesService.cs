@@ -48,7 +48,6 @@ public class MultiplePricesService : IMultiplePricesService
             dynamoDBRepository.WriteManyAsync(multiplePricesSeries);
         });
         await Task.WhenAll(tasks);
-        Console.WriteLine();
     }
 
     private List<string> GetFilesByInstrument(List<string> instruments, string localFolder)
