@@ -9,7 +9,7 @@ public interface IDynamoDBRepository<T> where T : class
     IDynamoDBContext GetDynamoContext();
     Task<T> GetAsync(string id);
     Task WriteAsync(T item);
-    void WriteManyAsync(IEnumerable<T> items);
+    void WriteMany(string instrumentName, IEnumerable<T> items);
     Task DeleteAsync(T item);
 }
 

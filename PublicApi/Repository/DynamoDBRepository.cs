@@ -18,7 +18,8 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
         var config = new AmazonDynamoDBConfig
         {
             ServiceURL = databaseSettings.Value.ServiceURL,
-            AuthenticationRegion = databaseSettings.Value.Region
+            AuthenticationRegion = databaseSettings.Value.Region,
+            Timeout = TimeSpan.FromSeconds(60)
         };
         this.client = new AmazonDynamoDBClient(credentials, config);
         this.context = new DynamoDBContext(this.client);
@@ -53,23 +54,34 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
             throw new Exception($"Amazon error in Write operation! Error: {ex}");
         }
     }
-    public void WriteManyAsync(IEnumerable<T> items)
+    public void WriteMany(string instrumentName, IEnumerable<T> items)
     {
-        logger.LogInformation("Writing " + items.Count() + " items");
-        int batchSize = 50;
-        var itemsList = items.ToList();
-        int totalBatches = (int)Math.Ceiling((double)itemsList.Count / batchSize);
+        logger.LogInformation("Writing " + instrumentName + " with " + items.Count() + " items");
+        int batchSize = 100;
+        int totalBatches = (int)Math.Ceiling((double)items.Count() / batchSize);
 
-        Parallel.For(0, totalBatches, async i =>
+        try
         {
-            var batch = context.CreateBatchWrite<T>();
-            var currentBatch = itemsList.Skip(i * batchSize).Take(batchSize);
-            batch.AddPutItems(currentBatch);
-            await batch.ExecuteAsync();
-        });
+            Parallel.For(0, totalBatches, async i =>
+            {
+                var batch = context.CreateBatchWrite<T>();
+                var currentBatch = items.Skip(i * batchSize).Take(batchSize);
+                batch.AddPutItems(currentBatch);
+                await batch.ExecuteAsync();
+            });
+        }
+        catch (TimeoutException ex)
+        {
+            logger.LogError("Operation was canceled due to timeout. Exception details: " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("An error occurred while writing items. Exception details: " + ex.Message);
+        }
 
-        logger.LogInformation("Done");
+        logger.LogInformation(instrumentName +" is done");
     }
+
 
     public async Task DeleteAsync(T item)
     {

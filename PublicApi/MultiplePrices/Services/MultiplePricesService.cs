@@ -29,26 +29,37 @@ public class MultiplePricesService : IMultiplePricesService
     {
         var localFolder = localFoldersSettings.Value.MultiplePricesFolder;
         var instrumentFiles = this.GetFilesByInstrument(instruments, localFolder);
+        Console.WriteLine();
+
         var tasks = instrumentFiles.Select(async instrumentFile =>
         {
-            var instrumentName = Path.GetFileNameWithoutExtension(instrumentFile);
-            this.logger.LogInformation("Loading CSV of " + instrumentName);
-            var records = await recordsReader.CreateRecordsAsync(instrumentFile);
-            var multiplePricesSeries = records.Select(x => new MultiplePricesItem
+            try
             {
-                Instrument = instrumentName,
-                UnixDateTime = (int)x.DATETIME.Subtract(DateTime.UnixEpoch).TotalSeconds,
-                Carry = decimal.TryParse(x.CARRY, out decimal carry) ? carry : null,
-                CarryContract = x.CARRY_CONTRACT,
-                Price = decimal.TryParse(x.PRICE, out decimal price) ? price : null,
-                PriceContract = x.PRICE_CONTRACT,
-                Forward = decimal.TryParse(x.FORWARD, out decimal forward) ? forward : null,
-                ForwardContract = x.FORWARD_CONTRACT
-            });
-            dynamoDBRepository.WriteManyAsync(multiplePricesSeries);
+                var instrumentName = Path.GetFileNameWithoutExtension(instrumentFile);
+                this.logger.LogInformation("Loading CSV of " + instrumentName);
+                var records = await recordsReader.CreateRecordsAsync(instrumentFile);
+                var multiplePricesSeries = records.Select(x => new MultiplePricesItem
+                {
+                    Instrument = instrumentName,
+                    UnixDateTime = (int)x.DATETIME.Subtract(DateTime.UnixEpoch).TotalSeconds,
+                    Carry = decimal.TryParse(x.CARRY, out decimal carry) ? carry : null,
+                    CarryContract = x.CARRY_CONTRACT,
+                    Price = decimal.TryParse(x.PRICE, out decimal price) ? price : null,
+                    PriceContract = x.PRICE_CONTRACT,
+                    Forward = decimal.TryParse(x.FORWARD, out decimal forward) ? forward : null,
+                    ForwardContract = x.FORWARD_CONTRACT
+                });
+                dynamoDBRepository.WriteMany(instrumentName, multiplePricesSeries);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Error processing file: " + instrumentFile);
+            }
         });
         await Task.WhenAll(tasks);
+        Console.WriteLine();
     }
+
 
     private List<string> GetFilesByInstrument(List<string> instruments, string localFolder)
     {
