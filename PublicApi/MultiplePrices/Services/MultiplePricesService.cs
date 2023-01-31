@@ -45,7 +45,7 @@ public class MultiplePricesService : IMultiplePricesService
                 Forward = decimal.TryParse(x.FORWARD, out decimal forward) ? forward : null,
                 ForwardContract = x.FORWARD_CONTRACT
             });
-            await dynamoDBRepository.WriteManyAsync(multiplePricesSeries);
+            dynamoDBRepository.WriteManyAsync(multiplePricesSeries);
         });
         await Task.WhenAll(tasks);
         Console.WriteLine();

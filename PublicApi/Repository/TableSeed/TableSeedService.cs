@@ -78,8 +78,8 @@ public class TableSeedService
     },
             ProvisionedThroughput = new ProvisionedThroughput
             {
-                ReadCapacityUnits = 1000,
-                WriteCapacityUnits = 1000
+                ReadCapacityUnits = 40000,
+                WriteCapacityUnits = 40000
             }
         };
         await client.CreateTableAsync(request);
