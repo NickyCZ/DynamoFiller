@@ -5,6 +5,7 @@ using PublicApi.RecordReaders;
 using PublicApi.Repository;
 using PublicApi.Settings;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace PublicApi.MultiplePrices.Services;
 
@@ -29,8 +30,9 @@ public class MultiplePricesService : IMultiplePricesService
     {
         var localFolder = localFoldersSettings.Value.MultiplePricesFolder;
         var instrumentFiles = this.GetFilesByInstrument(instruments, localFolder);
-        Console.WriteLine();
-
+        var StartDateTime = DateTime.Now;
+        var stopWatch = new Stopwatch();
+        stopWatch.Start();
         var tasks = instrumentFiles.Select(async instrumentFile =>
         {
             try
@@ -49,7 +51,7 @@ public class MultiplePricesService : IMultiplePricesService
                     Forward = decimal.TryParse(x.FORWARD, out decimal forward) ? forward : null,
                     ForwardContract = x.FORWARD_CONTRACT
                 });
-                dynamoDBRepository.WriteMany(instrumentName, multiplePricesSeries);
+                await dynamoDBRepository.WriteMany(instrumentName, multiplePricesSeries);
             }
             catch (Exception ex)
             {
@@ -57,7 +59,8 @@ public class MultiplePricesService : IMultiplePricesService
             }
         });
         await Task.WhenAll(tasks);
-        Console.WriteLine();
+        stopWatch.Stop();
+        this.logger.LogInformation($"Time Taken to Execute the For Loop in miliseconds {stopWatch.ElapsedMilliseconds}");
     }
 
 

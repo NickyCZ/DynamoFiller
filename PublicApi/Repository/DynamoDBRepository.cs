@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.Runtime;
 using Microsoft.Extensions.Options;
 using PublicApi.Settings;
+using System.Threading.Tasks;
 
 namespace PublicApi.Repository;
 
@@ -54,34 +55,63 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
             throw new Exception($"Amazon error in Write operation! Error: {ex}");
         }
     }
-    public void WriteMany(string instrumentName, IEnumerable<T> items)
+    public async Task WriteMany(string instrumentName, IEnumerable<T> items)
     {
-        logger.LogInformation("Writing " + instrumentName + " with " + items.Count() + " items");
+        int retryAttempts = 3;
         int batchSize = 100;
         int totalBatches = (int)Math.Ceiling((double)items.Count() / batchSize);
 
-        try
+        logger.LogInformation("Writing " + instrumentName + " with " + items.Count() + " items in " + totalBatches + " batches.");
+
+        for (int attempt = 1; attempt <= retryAttempts; attempt++)
         {
-            Parallel.For(0, totalBatches, async i =>
+            try
             {
-                var batch = context.CreateBatchWrite<T>();
-                var currentBatch = items.Skip(i * batchSize).Take(batchSize);
-                batch.AddPutItems(currentBatch);
-                await batch.ExecuteAsync();
-            });
-        }
-        catch (TimeoutException ex)
-        {
-            logger.LogError("Operation was canceled due to timeout. Exception details: " + ex.Message);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError("An error occurred while writing items. Exception details: " + ex.Message);
+                var tasks = new List<Task>();
+                for (int i = 0; i < totalBatches; i++)
+                {
+                    var task = Task.Run(async () =>
+                    {
+                        var batch = context.CreateBatchWrite<T>();
+                        var currentBatch = items.Skip(i * batchSize).Take(batchSize);
+                        batch.AddPutItems(currentBatch);
+                        await batch.ExecuteAsync();
+                    });
+
+                    tasks.Add(task);
+                }
+
+                await Task.WhenAll(tasks);
+                break;
+            }
+            catch (TimeoutException ex)
+            {
+                if (attempt == retryAttempts)
+                {
+                    logger.LogError("Operation failed after " + retryAttempts + " attempts. Exception details: " + ex.Message);
+                    throw;
+                }
+                else
+                {
+                    int backoffTime = GetExponentialBackoffTime(attempt);
+                    logger.LogWarning("Operation timed out, retrying in " + backoffTime + "ms. Attempt " + attempt + " of " + retryAttempts);
+                    Task.Delay(backoffTime).Wait();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("An error occurred while writing items. Exception details: " + ex.Message);
+                throw;
+            }
         }
 
-        logger.LogInformation(instrumentName +" is done");
+        logger.LogInformation(instrumentName + " writing is complete.");
     }
 
+    private int GetExponentialBackoffTime(int attempt)
+    {
+        return (int)Math.Pow(2, attempt) * 1000;
+    }
 
     public async Task DeleteAsync(T item)
     {
