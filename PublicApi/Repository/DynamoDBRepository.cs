@@ -29,32 +29,6 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
     {
         return this.client;
     }
-    public IDynamoDBContext GetDynamoContext()
-    {
-        return this.context;
-    }
-    public async Task<T> GetAsync(string id)
-    {
-        try
-        {
-            return await context.LoadAsync<T>(id);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Amazon error in GetAvailableInstrument operation! Error: {ex}");
-        }
-    }
-    public async Task WriteAsync(T item)
-    {
-        try
-        {
-            await context.SaveAsync(item);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Amazon error in Write operation! Error: {ex}");
-        }
-    }
     public async Task WriteMany(string instrumentName, IEnumerable<T> items)
     {
         int retryAttempts = 3;
@@ -111,17 +85,5 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
     private int GetExponentialBackoffTime(int attempt)
     {
         return (int)Math.Pow(2, attempt) * 1000;
-    }
-
-    public async Task DeleteAsync(T item)
-    {
-        try
-        {
-            await context.DeleteAsync(item);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Amazon error in Delete operation! Error: {ex}");
-        }
     }
 }

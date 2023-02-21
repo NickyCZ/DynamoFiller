@@ -2,6 +2,7 @@ using Mediator;
 using Microsoft.AspNetCore.Mvc;
 using PublicApi.Commands;
 using PublicApi.MultiplePrices.Models;
+using PublicApi.Queries;
 using System.Net;
 
 namespace PublicApi.Controllers;
@@ -33,4 +34,13 @@ public class InstrumentsController : ControllerBase
         }
         return BadRequest(ModelState);
     }
+
+    [HttpGet("tables")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetTables()
+    {
+        var tables = await mediator.Send(new GetTablesQuery());
+        return Ok(tables);
+    }
+
 }

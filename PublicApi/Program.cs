@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using PublicApi.AdjustedPrices.Services;
 using PublicApi.FxPrices.Services;
 using PublicApi.MultiplePrices.Items;

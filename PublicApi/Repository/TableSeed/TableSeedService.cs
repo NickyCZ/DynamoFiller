@@ -44,7 +44,7 @@ public class TableSeedService
         }
     }
 
-    private static async Task CreateMultiplePricesTableAsync(AmazonDynamoDBClient client, ILogger logger)
+    private static async Task CreateMultiplePricesTableAsync(IAmazonDynamoDB client, ILogger logger)
     {
         logger.LogInformation("Creation MultiplePricesTable");
         var request = new CreateTableRequest

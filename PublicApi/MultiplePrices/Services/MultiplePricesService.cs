@@ -4,7 +4,6 @@ using PublicApi.MultiplePrices.Records;
 using PublicApi.RecordReaders;
 using PublicApi.Repository;
 using PublicApi.Settings;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace PublicApi.MultiplePrices.Services;
