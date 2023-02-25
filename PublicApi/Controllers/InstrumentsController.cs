@@ -36,10 +36,22 @@ public class InstrumentsController : ControllerBase
     }
 
     [HttpGet("tables")]
+    [ProducesResponseType((int)HttpStatusCode.Forbidden)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> GetTables()
     {
         var tables = await mediator.Send(new GetTablesQuery());
+        return Ok(tables);
+    }
+
+    [HttpGet("cout-of-items")]
+    [ProducesResponseType((int)HttpStatusCode.Forbidden)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> CountOfItems(string nameOfTable)
+    {
+        var tables = await mediator.Send(new GetCountOfItemsQuery { TableName = nameOfTable });
         return Ok(tables);
     }
 

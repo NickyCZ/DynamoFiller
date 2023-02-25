@@ -3,7 +3,6 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.Runtime;
 using Microsoft.Extensions.Options;
 using PublicApi.Settings;
-using System.Threading.Tasks;
 
 namespace PublicApi.Repository;
 
@@ -19,15 +18,19 @@ public class DynamoDBRepository<T> : IDynamoDBRepository<T> where T : class
         var config = new AmazonDynamoDBConfig
         {
             ServiceURL = databaseSettings.Value.ServiceURL,
-            AuthenticationRegion = databaseSettings.Value.Region,
-            Timeout = TimeSpan.FromSeconds(60)
+            AuthenticationRegion = databaseSettings.Value.Region
         };
+
         this.client = new AmazonDynamoDBClient(credentials, config);
         this.context = new DynamoDBContext(this.client);
     }
     public AmazonDynamoDBClient GetDynamo()
     {
         return this.client;
+    }
+    public DynamoDBContext GetDynamoDBContext()
+    {
+        return this.context;
     }
     public async Task WriteMany(string instrumentName, IEnumerable<T> items)
     {
